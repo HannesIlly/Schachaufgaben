@@ -2,6 +2,7 @@ package chessboard;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class Board {
@@ -92,7 +93,8 @@ public class Board {
      *
      * @param fields
      *         the 8x8 array of fields
-     * @throws IllegalArgumentException if the given fields don't match the size of a chessboard
+     * @throws IllegalArgumentException
+     *         if the given fields don't match the size of a chessboard
      */
     public Board(Field[][] fields) throws IllegalArgumentException {
         if (fields.length == 8 && fields[5].length == 8 && fields[5][7] != null) {
@@ -264,8 +266,49 @@ public class Board {
      * @return the position
      */
     public String getPositionString() {
-        //todo get position as string
-        return null;
+        String white = "";
+        String black = "";
+        for (int x = 0; x < board.length; x++) {
+            for (int y = 0; y < board[x].length; y++) {
+                Piece piece = board[x][y].getPiece();
+                if (piece != null) {
+                    String currentString = "";
+                    switch (piece.getType()) {
+                        case king:
+                            currentString += "K";
+                            break;
+                        case queen:
+                            currentString += "D";
+                            break;
+                        case rook:
+                            currentString += "T";
+                            break;
+                        case bishop:
+                            currentString += "L";
+                            break;
+                        case knight:
+                            currentString += "S";
+                            break;
+                        default:
+                    }
+                    currentString = currentString + ((char) (x + 97)) + (y + 1) + " ";
+                    if (piece.getColour() == Colour.white) {
+                        if (piece.getType() == PieceType.king) {
+                            white = currentString + white;
+                        } else {
+                            white += currentString;
+                        }
+                    } else {
+                        if (piece.getType() == PieceType.king) {
+                            black = currentString + black;
+                        } else {
+                            black += currentString;
+                        }
+                    }
+                }
+            }
+        }
+        return white + black;
     }
 
     /**
