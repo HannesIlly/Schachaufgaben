@@ -13,9 +13,6 @@ public class Piece {
     private Field field;
     private PieceType type;
     private Colour colour;
-    private BufferedImage pieceWhite;
-    private BufferedImage pieceBlack;
-    private BufferedImage piecePrint;
 
     /**
      * Creates a new piece from the given type and colour, that is located on the given field.

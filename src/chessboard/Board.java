@@ -1,6 +1,7 @@
 package chessboard;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Board {
@@ -12,6 +13,7 @@ public class Board {
      */
     public Board() throws IOException {
         board = new Field[8][8];
+        pieces = new ArrayList<>();
         //All empty fields
         for (int y = 2; y < board.length - 2; y++) { // this works, because the board is a square.
             for (int x = 0; x < board.length; x++) {

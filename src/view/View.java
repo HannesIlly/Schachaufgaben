@@ -19,24 +19,26 @@ public class View extends Frame implements MouseListener, MouseMotionListener {
     private Colour[] colours = {Colour.white, Colour.black};
 
     private Board board;
+    private Piece currentPiece;
 
-    Piece currentPiece;
     private DisplayableImage[][] pieceButtons;
-    private BufferedImage[][] pieceImages;
+    private BufferedImage[][][] pieceImages;
 
     /**
      * Creates a new view of the given board.
      */
     public View(Board board) throws IOException {
         this.board = board;
-        pieceImages = new BufferedImage[6][2];
+        pieceImages = new BufferedImage[6][2][3];
         pieceButtons = new DisplayableImage[6][2];
 
         try {
             for (int i = 0; i < pieceImages.length; i++) {
                 for (int j = 0; j < pieceImages[0].length; j++) {
-                    pieceImages[i][j] = getImage(types[i], colours[j]);
-                    pieceButtons[i][j] = new DisplayableImage(pieceImages[i][j], i * 64, j * 64);
+                    pieceImages[i][j][0] = getImage(types[i], colours[j], Colour.white);
+                    pieceImages[i][j][1] = getImage(types[i], colours[j], Colour.black);
+                    pieceImages[i][j][2] = getImage(types[i], colours[j], Colour.print);
+                    pieceButtons[i][j] = new DisplayableImage(pieceImages[i][j][0], 300 + i * 64, 15 + j * 64);
                 }
             }
         } catch (IOException e) {
@@ -45,11 +47,18 @@ public class View extends Frame implements MouseListener, MouseMotionListener {
 
 
         setTitle(NAME);
-        setExtendedState(MAXIMIZED_BOTH);
+        setIconImage(pieceImages[0][0][0]);
+        setLocation(224, 78);
+        setSize(1024, 768);
+        //setExtendedState(MAXIMIZED_BOTH);
         setVisible(true);
         setResizable(true);
+
+        addMouseListener(this);
+        addMouseMotionListener(this);
         addWindowListener(new WindowListener());
-        image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_USHORT_GRAY);
+
+        image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_BYTE_GRAY);
         g = image.createGraphics();
 
         try {
@@ -76,14 +85,14 @@ public class View extends Frame implements MouseListener, MouseMotionListener {
      *
      * @param type
      *         the pieceType
-     * @param colour
+     * @param playerColour
      *         the colour
      * @return the BufferedImage that corresponds to the given information
      * @throws IOException
      *         if the image couldn't be read
      */
-    private BufferedImage getImage(PieceType type, Colour colour) throws IOException {
-        return SaveFile.getImage(colour.toString() + "_" + type.toString() + "_w.png");
+    private BufferedImage getImage(PieceType type, Colour playerColour, Colour fieldColour) throws IOException {
+        return SaveFile.getImage(playerColour.toString() + "_" + type.toString() + "_" + fieldColour.toString().substring(0, 1) + ".png");
     }
 
     /**
@@ -106,8 +115,8 @@ public class View extends Frame implements MouseListener, MouseMotionListener {
             }
         }
         // draw the board
-        int xOrigin = 100;
-        int yOrigin = 200;
+        int xOrigin = 200;
+        int yOrigin = 143;
         g.drawImage(background, xOrigin, yOrigin, this);
         // draw the pieces of the board
         for (int x = 0; x < 8; x++) {
@@ -115,7 +124,9 @@ public class View extends Frame implements MouseListener, MouseMotionListener {
                 try {
                     Field field = board.getField(x, y);
                     Piece piece = field.getPiece();
-                    g.drawImage(pieceImages[piece.getType().ordinal()][piece.getColour().ordinal()], xOrigin + 38 + 64 * x, yOrigin + 38 + 512 - 64 * (y + 1), this);
+                    if (piece != null) {
+                        g.drawImage(pieceImages[piece.getType().ordinal()][piece.getColour().ordinal()][field.getColour().ordinal()], xOrigin + 38 + 64 * x, yOrigin + 38 + 512 - 64 * (y + 1), this);
+                    }
                 } catch (IllegalArgumentException e) {
                     //todo deal with exception
                 }
@@ -175,13 +186,11 @@ public class View extends Frame implements MouseListener, MouseMotionListener {
 
     @Override
     public void mouseDragged(MouseEvent e) {
-        e.getX();
-        e.getY();
+
     }
 
     @Override
     public void mouseMoved(MouseEvent e) {
-        e.getX();
-        e.getY();
+
     }
 }
