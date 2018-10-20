@@ -105,7 +105,7 @@ public class View extends Frame implements MouseListener, MouseMotionListener {
     public void update(Graphics graphics) {
         // clear image
         g.setColor(Color.white);
-        g.drawRect(0, 0, getWidth(), getHeight());
+        g.fillRect(0, 0, getWidth(), getHeight());
 
 
         // draw all piece buttons
@@ -113,10 +113,16 @@ public class View extends Frame implements MouseListener, MouseMotionListener {
             for (DisplayableImage image : images) {
                 g.drawImage(image.getImage(), image.getXPosition(), image.getYPosition(), this);
             }
+            if (currentPiece != null) {
+                DisplayableImage currentButton = pieceButtons[currentPiece.getType().ordinal()][currentPiece.getColour().ordinal()];
+                g.setColor(Color.black);
+                g.drawRect(currentButton.getXPosition(), currentButton.getYPosition(), currentButton.getWidth(), currentButton.getHeight());
+                g.drawRect(currentButton.getXPosition() + 1, currentButton.getYPosition() + 1, currentButton.getWidth() - 2, currentButton.getHeight() - 2);
+            }
         }
         // draw the board
         int xOrigin = 200;
-        int yOrigin = 143;
+        int yOrigin = 145;
         g.drawImage(background, xOrigin, yOrigin, this);
         // draw the pieces of the board
         for (int x = 0; x < 8; x++) {
@@ -151,8 +157,8 @@ public class View extends Frame implements MouseListener, MouseMotionListener {
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        int x = e.getX();
-        int y = e.getY();
+        int x = e.getX() - 5;
+        int y = e.getY() - 20;
         for (int i = 0; i < pieceButtons.length; i++) {
             for (int j = 0; j < pieceButtons[i].length; j++) {
                 boolean onImageX = x >= pieceButtons[i][j].getXPosition() && x <= pieceButtons[i][j].getXPosition() + pieceButtons[i][j].getWidth();

@@ -90,9 +90,11 @@ public class Board {
      * Creates a new board with the given fields. The board will assume the state of the fields e.g.
      * ff the fields have pieces on it or are in an illegal state, the board will as well.
      *
-     * @param fields the 8x8 array of fields
+     * @param fields
+     *         the 8x8 array of fields
+     * @throws IllegalArgumentException if the given fields don't match the size of a chessboard
      */
-    public Board(Field[][] fields) {
+    public Board(Field[][] fields) throws IllegalArgumentException {
         if (fields.length == 8 && fields[5].length == 8 && fields[5][7] != null) {
             this.board = fields.clone();
         } else {
@@ -103,22 +105,157 @@ public class Board {
     /**
      * Creates a chessboard from the position String.
      *
-     * @param position the position data
+     * @param position
+     *         the position data
      * @return the board with the given position on it
      */
-    public static Board createFromPosition(String position) {
-        //todo create from position
-        return null;
+    public static Board createFromPositionString(String position) {
+        PieceType pieceType = PieceType.king;
+        Colour player = Colour.black;
+        Field[][] fields = new Field[8][8];
+        for (int x = 0; x < fields.length; x++) {
+            for (int y = 0; y < fields[x].length; y++) {
+                fields[x][y] = new Field((x + y) % 2 == 0 ? Colour.black : Colour.white);
+            }
+        }
+        String[] positionData = position.split(" ");
+        int x = 0;
+        int y = 7;
+
+        for (int i = 0; i < positionData.length; i++) {
+            String current = positionData[i];
+            if (current.length() == 3) {
+                switch (current.substring(0, 1).toUpperCase()) {
+                    case "K":
+                        pieceType = PieceType.king;
+                        break;
+                    case "D":
+                        pieceType = PieceType.queen;
+                        break;
+                    case "T":
+                        pieceType = PieceType.rook;
+                        break;
+                    case "L":
+                        pieceType = PieceType.bishop;
+                        break;
+                    case "S":
+                        pieceType = PieceType.knight;
+                        break;
+                    default:
+                        break;
+                }
+                if (pieceType == PieceType.king) {
+                    if (player == Colour.white) {
+                        player = Colour.black;
+                    } else {
+                        player = Colour.white;
+                    }
+                }
+
+                x = current.charAt(1) - 97;
+                y = Integer.parseInt(current.substring(2, 3)) - 1;
+
+            } else if (current.length() == 2) {
+                pieceType = PieceType.pawn;
+
+                x = current.charAt(0) - 97;
+                y = Integer.parseInt(current.substring(1, 2)) - 1;
+            }
+
+            new Piece(pieceType, player).move(fields[x][y]);
+        }
+
+        return new Board(fields);
     }
 
     /**
      * Creates a chessboard from the position String in the FEN format.
-     * @param fen the position data in the FEN format
+     *
+     * @param fen
+     *         the position data in the FEN format
      * @return the board with the given position on it
      */
     public static Board createFromFEN(String fen) {
-        //todo create from fen
-        return null;
+        PieceType pieceType = PieceType.king;
+        Colour player = Colour.black;
+        Field[][] fields = new Field[8][8];
+        for (int x = 0; x < fields.length; x++) {
+            for (int y = 0; y < fields[x].length; y++) {
+                fields[x][y] = new Field((x + y) % 2 == 0 ? Colour.black : Colour.white);
+            }
+        }
+        int x = 0;
+        int y = 7;
+        boolean drawPiece;
+
+        while (fen != null && !fen.equals("")) {
+            drawPiece = true;
+            switch (fen.charAt(0)) {
+                case 'K':
+                    pieceType = PieceType.king;
+                    player = Colour.white;
+                    break;
+                case 'Q':
+                    pieceType = PieceType.queen;
+                    player = Colour.white;
+                    break;
+                case 'R':
+                    pieceType = PieceType.rook;
+                    player = Colour.white;
+                    break;
+                case 'B':
+                    pieceType = PieceType.bishop;
+                    player = Colour.white;
+                    break;
+                case 'N':
+                    pieceType = PieceType.knight;
+                    player = Colour.white;
+                    break;
+                case 'P':
+                    pieceType = PieceType.pawn;
+                    player = Colour.white;
+                    break;
+                case 'k':
+                    pieceType = PieceType.king;
+                    player = Colour.black;
+                    break;
+                case 'q':
+                    pieceType = PieceType.queen;
+                    player = Colour.black;
+                    break;
+                case 'r':
+                    pieceType = PieceType.rook;
+                    player = Colour.black;
+                    break;
+                case 'b':
+                    pieceType = PieceType.bishop;
+                    player = Colour.black;
+                    break;
+                case 'n':
+                    pieceType = PieceType.knight;
+                    player = Colour.black;
+                    break;
+                case 'p':
+                    pieceType = PieceType.pawn;
+                    player = Colour.black;
+                    break;
+                case '/':
+                    y--;
+                    x = -1;
+                    drawPiece = false;
+                    break;
+                default:
+                    x += Integer.valueOf(fen.substring(0, 1)) - 1;
+                    drawPiece = false;
+            }
+            if (drawPiece) {
+                new Piece(pieceType, player).move(fields[x][y]);
+            }
+            fen = fen.substring(1, fen.length());
+            x++;
+        }
+
+        return new Board(fields);
     }
 
     /**
@@ -126,13 +263,14 @@ public class Board {
      *
      * @return the position
      */
-    public String getPosition() {
+    public String getPositionString() {
         //todo get position as string
         return null;
     }
 
     /**
      * Returns the position in FEN format.
+     *
      * @return the position
      */
     public String getFEN() {
@@ -157,8 +295,10 @@ public class Board {
     /**
      * Gets the field at the given position.
      *
-     * @param x the x-coordinate
-     * @param y the y-coordinate
+     * @param x
+     *         the x-coordinate
+     * @param y
+     *         the y-coordinate
      * @return the field at the given coordinates
      */
     public Field getField(int x, int y) throws IllegalArgumentException {
@@ -166,6 +306,10 @@ public class Board {
             return board[x][y];
         }
         throw new IllegalArgumentException("The dimensions of the board are 8x8. Cannot return field " + x + ", " + y);
+    }
+
+    public void printPosition(String position, boolean fen) {
+
     }
 
 }
