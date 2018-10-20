@@ -308,8 +308,4 @@ public class Board {
         throw new IllegalArgumentException("The dimensions of the board are 8x8. Cannot return field " + x + ", " + y);
     }
 
-    public void printPosition(String position, boolean fen) {
-
-    }
-
 }

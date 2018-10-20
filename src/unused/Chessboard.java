@@ -137,7 +137,7 @@ public class Chessboard {
      * Marks the field with the specified sign
      */
     public void markField(int x, int y, Mark mark) {
-        //TODO Create marking method
+        // not implemented
     }
 
 }

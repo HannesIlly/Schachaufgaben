@@ -33,7 +33,10 @@ public class Main implements Runnable{
      */
     public static void main(String[] args){
         try {
-            Board board = new Board();
+            // todo test and remove other "comments"
+            //Board board = new Board();
+            Board board = Board.createFromPositionString("Ke1 Da5 Tg3 Kg8 Df6 f7 g7 h7");
+            //Board board = Board.createFromFEN("6k1/5ppp/5q2/Q7/8/6R1/8/4K3");
             View view = new View(board);
             Main main = new Main(board, view);
         } catch (IOException e) {
