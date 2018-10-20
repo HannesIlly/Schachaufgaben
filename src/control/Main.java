@@ -33,7 +33,8 @@ public class Main implements Runnable{
      */
     public static void main(String[] args){
         try {
-            // todo test and remove other "comments"
+            // todo add: add pieces, move pieces, starting position, add name/text, save/load, export image
+            // todo test
             //Board board = new Board();
             Board board = Board.createFromPositionString("Ke1 Da5 Tg3 Kg8 Df6 f7 g7 h7");
             //Board board = Board.createFromFEN("6k1/5ppp/5q2/Q7/8/6R1/8/4K3");
