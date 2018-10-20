@@ -1,3 +1,8 @@
+package unused;
+
+import chessboard.Colour;
+import chessboard.PieceType;
+import unused.Chessboard;
 
 /**
  * main class

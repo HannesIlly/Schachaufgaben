@@ -151,4 +151,19 @@ public class Board {
     private void createField(int x, int y) {
         this.board[x][y] = new Field((x + y) % 2 == 0 ? Colour.black : Colour.white);
     }
+
+    /**
+     * Gets the field at the given position.
+     *
+     * @param x the x-coordinate
+     * @param y the y-coordinate
+     * @return the field at the given coordinates
+     */
+    public Field getField(int x, int y) throws IllegalArgumentException {
+        if (x < board.length && y < board.length) {
+            return board[x][y];
+        }
+        throw new IllegalArgumentException("The dimensions of the board are 8x8. Cannot return field " + x + ", " + y);
+    }
+
 }

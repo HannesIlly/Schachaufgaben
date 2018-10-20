@@ -1,7 +1,9 @@
-package UserInterface;
+package unused;
 
-import java.awt.image.BufferedImage;
-import java.util.function.Consumer;
+import view.DisplayableImage;
+
+import java.awt.event.ActionListener;
+import java.util.List;
 
 /**
  * An image that can be clicked and used as a button.
@@ -9,7 +11,7 @@ import java.util.function.Consumer;
 public class ImageButton {
     private String title;
     private DisplayableImage image;
-    // private List<Consumer<>> todo listener?
+    private List<ActionListener> listeners;
 
     /**
      * Creates a new ImageButton with the given text and {@link DisplayableImage}.
@@ -30,4 +32,14 @@ public class ImageButton {
     public ImageButton(DisplayableImage image) {
         this.image = image;
     }
+
+    /**
+     * Adds a listener to this button.
+     *
+     * @param listener the ActionListener
+     */
+    public void addListener(ActionListener listener) {
+        this.listeners.add(listener);
+    }
+
 }

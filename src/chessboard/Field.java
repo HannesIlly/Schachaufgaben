@@ -67,4 +67,22 @@ public class Field {
     public void unmark() {
         setMark(null);
     }
+
+    /**
+     * Gets the colour of this field.
+     *
+     * @return the colour of this field
+     */
+    public Colour getColour() {
+       return colour;
+    }
+
+    /**
+     * Gets the mark of this field.
+     *
+     * @return the mark
+     */
+    public Mark getMark() {
+        return mark;
+    }
 }

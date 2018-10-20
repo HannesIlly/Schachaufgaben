@@ -27,18 +27,11 @@ public class Piece {
      * @param field
      *         the field on which the piece is located
      */
-    public Piece(PieceType type, Colour colour, Field field) throws IOException {
+    public Piece(PieceType type, Colour colour, Field field) {
         this.type = type;
         this.colour = colour;
         this.field = field;
         field.setPiece(this);
-        try {
-            this.pieceWhite = SaveFile.getImage(colour.toString() + "_" + type.toString() + "_w.png");
-            this.pieceBlack = SaveFile.getImage(colour.toString() + "_" + type.toString() + "_b.png");
-            this.piecePrint = SaveFile.getImage(colour.toString() + "_" + type.toString() + "_p.png");
-        } catch (IOException e) {
-            throw new IOException("Cannot read the image for " + colour.toString() + type.toString() + " :\n" + e.getMessage());
-        }
     }
 
     /**
@@ -49,12 +42,9 @@ public class Piece {
      * @param colour
      *         the piece's colour
      */
-    public Piece(PieceType type, Colour colour) throws IOException {
+    public Piece(PieceType type, Colour colour) {
         this.type = type;
         this.colour = colour;
-        this.pieceWhite = SaveFile.getImage(colour.toString() + "_" + type.toString() + "_w.png");
-        this.pieceBlack = SaveFile.getImage(colour.toString() + "_" + type.toString() + "_b.png");
-        this.piecePrint = SaveFile.getImage(colour.toString() + "_" + type.toString() + "_p.png");
     }
 
     /**
@@ -86,8 +76,30 @@ public class Piece {
      *         board.
      */
     public void move(Field field) {
-        getField().setPiece(null);
-        setField(field);
-        field.setPiece(this);
+        if (field != null) {
+            if (getField() != null) {
+                getField().setPiece(null);
+            }
+            setField(field);
+            field.setPiece(this);
+        }
+    }
+
+    /**
+     * Gets the type of this piece
+     *
+     * @return the PieceType
+     */
+    public PieceType getType() {
+        return type;
+    }
+
+    /**
+     * Gets the colour of this piece
+     *
+     * @return the colour
+     */
+    public Colour getColour() {
+        return colour;
     }
 }

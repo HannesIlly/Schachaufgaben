@@ -1,4 +1,4 @@
-package UserInterface;
+package view;
 
 import java.awt.image.BufferedImage;
 
@@ -6,9 +6,9 @@ import java.awt.image.BufferedImage;
  * Represents a BufferedImage with position data, that can be drawn.
  */
 public class DisplayableImage {
-    int x;
-    int y;
-    BufferedImage image;
+    private int x;
+    private int y;
+    private BufferedImage image;
 
     /**
      * Creates a new DisplayableImage from the given image and position.
@@ -37,7 +37,7 @@ public class DisplayableImage {
      *
      * @return the x position
      */
-    public int getX() {
+    public int getXPosition() {
         return x;
     }
 
@@ -46,8 +46,26 @@ public class DisplayableImage {
      *
      * @return the y position
      */
-    public int getY() {
+    public int getYPosition() {
         return y;
+    }
+
+    /**
+     * Gets the with of this image.
+     *
+     * @return the width of the image
+     */
+    public int getWidth() {
+        return image.getWidth();
+    }
+
+    /**
+     * Gets the height of this image.
+     *
+     * @return the height of the image
+     */
+    public int getHeight() {
+        return image.getHeight();
     }
 
 }
