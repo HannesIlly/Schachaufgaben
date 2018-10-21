@@ -7,6 +7,9 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.LinkedList;
 
 public class View extends Frame implements MouseListener, MouseMotionListener {
     private static final String NAME = "Schachaufgaben erstellen";
@@ -23,12 +26,15 @@ public class View extends Frame implements MouseListener, MouseMotionListener {
 
     private PieceType[] types = {PieceType.king, PieceType.queen, PieceType.rook, PieceType.bishop, PieceType.knight, PieceType.pawn};
     private Colour[] colours = {Colour.white, Colour.black};
+    private BufferedImage[][][] pieceImages;
 
     private Board board;
     private Piece currentPiece;
+    private boolean move = false;
 
     private DisplayableImage[][] pieceButtons;
-    private BufferedImage[][][] pieceImages;
+    private List<DisplayableImage> imageButtons;
+    private List<Button> buttons;
 
     /**
      * Creates a new view of the given board.
@@ -37,7 +43,6 @@ public class View extends Frame implements MouseListener, MouseMotionListener {
         this.board = board;
         pieceImages = new BufferedImage[6][2][3];
         pieceButtons = new DisplayableImage[6][2];
-
         try {
             for (int i = 0; i < pieceImages.length; i++) {
                 for (int j = 0; j < pieceImages[0].length; j++) {
@@ -50,7 +55,12 @@ public class View extends Frame implements MouseListener, MouseMotionListener {
         } catch (IOException e) {
             throw new IOException("Couldn't load UserInterface (" + e.getMessage() + ")");
         }
-
+        imageButtons = new ArrayList<DisplayableImage>();
+        imageButtons.add(new DisplayableImage(SaveFile.getImage("cursor_arrow.png"), 20, Y_ORIGIN + PADDING_BOARD));
+        imageButtons.add(new DisplayableImage(SaveFile.getImage("cursor_hand.png"), 20 + FIELD_SIZE, Y_ORIGIN + PADDING_BOARD));
+        buttons = new LinkedList<Button>();
+        buttons.add(new Button("Speichern", 20, Y_ORIGIN + PADDING_BOARD + 7 * FIELD_SIZE, 128, 64));
+        buttons.add(new Button("Laden", 20, Y_ORIGIN + PADDING_BOARD + 8 * FIELD_SIZE, 128, 64));
 
         setTitle(NAME);
         setIconImage(pieceImages[0][0][0]);
@@ -74,7 +84,6 @@ public class View extends Frame implements MouseListener, MouseMotionListener {
         }
 
         repaint();
-
     }
 
     /**
@@ -113,7 +122,15 @@ public class View extends Frame implements MouseListener, MouseMotionListener {
         g.setColor(Color.white);
         g.fillRect(0, 0, getWidth(), getHeight());
 
-
+        // draw all buttons
+        for (Button button : buttons) {
+            g.setColor(button.getBackgroundColor());
+            g.fillRect(button.getX(), button.getY(), button.getWidth(), button.getHeight());
+            g.setColor(button.getTextColor());
+            g.setFont(button.getFont());
+            g.drawString(button.getText(), button.getX() + 10, button.getY() + button.getHeight() + (int) ((button.getFont().getSize() * 0.75 - button.getHeight()) / 2));
+            g.drawRect(button.getX(), button.getY(), button.getWidth(), button.getHeight());
+        }
         // draw all piece buttons
         for (DisplayableImage[] images : pieceButtons) {
             for (DisplayableImage image : images) {
@@ -126,6 +143,19 @@ public class View extends Frame implements MouseListener, MouseMotionListener {
                 g.drawRect(currentButton.getXPosition() + 1, currentButton.getYPosition() + 1, currentButton.getWidth() - 2, currentButton.getHeight() - 2);
             }
         }
+        // draw all image buttons
+        for (DisplayableImage image : imageButtons) {
+            g.drawImage(image.getImage(), image.getXPosition(), image.getYPosition(), this);
+        }
+        DisplayableImage currentButton;
+        if (move) {
+            currentButton = imageButtons.get(1);
+        } else {
+            currentButton = imageButtons.get(0);
+        }
+        g.setColor(Color.black);
+        g.drawRect(currentButton.getXPosition(), currentButton.getYPosition(), currentButton.getWidth(), currentButton.getHeight());
+        g.drawRect(currentButton.getXPosition() + 1, currentButton.getYPosition() + 1, currentButton.getWidth() - 2, currentButton.getHeight() - 2);
         // draw the board
         g.drawImage(background, X_ORIGIN, Y_ORIGIN, this);
         // draw the pieces of the board
@@ -172,6 +202,24 @@ public class View extends Frame implements MouseListener, MouseMotionListener {
                 boolean onImageY = yMouse >= pieceButtons[i][j].getYPosition() && yMouse <= pieceButtons[i][j].getYPosition() + pieceButtons[i][j].getHeight();
                 if (onImageX && onImageY) {
                     currentPiece = new Piece(types[i], colours[j]);
+                    move = false;
+                }
+            }
+        }
+        // check the image buttons for click
+        for (DisplayableImage image : imageButtons) {
+            boolean onImageX = xMouse >= image.getXPosition() && xMouse <= image.getXPosition() + image.getWidth();
+            boolean onImageY = yMouse >= image.getYPosition() && yMouse <= image.getYPosition() + image.getHeight();
+            if (onImageX && onImageY) {
+                switch (imageButtons.indexOf(image)) {
+                    case 0:
+                        move = false;
+                        break;
+                    case 1:
+                        move = true;
+                        currentPiece = null;
+                        break;
+                    default:
                 }
             }
         }
@@ -183,12 +231,19 @@ public class View extends Frame implements MouseListener, MouseMotionListener {
                 int yField = 8 * FIELD_SIZE - yMouse + Y_ORIGIN + PADDING_BOARD;
                 yField /= FIELD_SIZE;
 
-                if (currentPiece != null) {
-                    if (board.getField(xField, yField).getPiece() == null) {
-                        board.getField(xField, yField).setPiece(currentPiece);
+                if (!move) {
+                    if (currentPiece != null && board.getField(xField, yField).getPiece() == null) {
+                        currentPiece.move(board.getField(xField, yField));
                         currentPiece = new Piece(currentPiece.getType(), currentPiece.getColour());
                     } else {
                         board.getField(xField, yField).setPiece(null);
+                    }
+                } else {
+                    if (currentPiece == null) {
+                        currentPiece = board.getField(xField, yField).getPiece();
+                    } else {
+                        currentPiece.move(board.getField(xField, yField));
+                        currentPiece = null;
                     }
                 }
             }

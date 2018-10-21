@@ -6,8 +6,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Board {
-    Field[][] board;
-    List<Piece> pieces;
+    private Field[][] board;
+    private List<Piece> pieces; // todo remove list?
 
     /**
      * Creates a new board with the initial positions of the pieces.
