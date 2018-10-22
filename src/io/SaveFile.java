@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.Buffer;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -100,5 +101,17 @@ public class SaveFile {
      */
     public static BufferedImage getImage(String path) throws IOException {
         return ImageIO.read(new File("resources/" + path));
+    }
+
+    /**
+     * Writes an image to the specified path.
+     *
+     * @param path the path of the image
+     * @param image the BufferedImage
+     * @return if a writer could be created
+     * @throws IOException if the image cannot be written
+     */
+    public static boolean writeImage(String path, BufferedImage image) throws IOException {
+        return ImageIO.write(image, "png", new File(path));
     }
 }

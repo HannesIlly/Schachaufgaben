@@ -17,7 +17,8 @@ public class View extends Frame implements MouseListener, MouseMotionListener {
     private static final int IMAGE_OFFSET_Y = 20;
     private static final int X_ORIGIN = 200;
     private static final int Y_ORIGIN = 40;
-    private static final int PADDING_BOARD = 38;
+    private static final int PADDING_BOARD_SMALL = 38;
+    private static final int PADDING_BOARD_LARGE = 46;
     private static final int FIELD_SIZE = 64;
 
     private Graphics2D g;
@@ -49,18 +50,18 @@ public class View extends Frame implements MouseListener, MouseMotionListener {
                     pieceImages[i][j][0] = getImage(types[i], colours[j], Colour.white);
                     pieceImages[i][j][1] = getImage(types[i], colours[j], Colour.black);
                     pieceImages[i][j][2] = getImage(types[i], colours[j], Colour.print);
-                    pieceButtons[i][j] = new DisplayableImage(pieceImages[i][j][0], 20 + j * FIELD_SIZE, Y_ORIGIN + PADDING_BOARD + FIELD_SIZE + i * FIELD_SIZE);
+                    pieceButtons[i][j] = new DisplayableImage(pieceImages[i][j][0], 20 + j * FIELD_SIZE, Y_ORIGIN + PADDING_BOARD_SMALL + FIELD_SIZE + i * FIELD_SIZE);
                 }
             }
         } catch (IOException e) {
             throw new IOException("Couldn't load UserInterface (" + e.getMessage() + ")");
         }
         imageButtons = new ArrayList<DisplayableImage>();
-        imageButtons.add(new DisplayableImage(SaveFile.getImage("cursor_arrow.png"), 20, Y_ORIGIN + PADDING_BOARD));
-        imageButtons.add(new DisplayableImage(SaveFile.getImage("cursor_hand.png"), 20 + FIELD_SIZE, Y_ORIGIN + PADDING_BOARD));
+        imageButtons.add(new DisplayableImage(SaveFile.getImage("cursor_arrow.png"), 20, Y_ORIGIN + PADDING_BOARD_SMALL));
+        imageButtons.add(new DisplayableImage(SaveFile.getImage("cursor_hand.png"), 20 + FIELD_SIZE, Y_ORIGIN + PADDING_BOARD_SMALL));
         buttons = new LinkedList<Button>();
-        buttons.add(new Button("Speichern", 20, Y_ORIGIN + PADDING_BOARD + 7 * FIELD_SIZE, 128, 64));
-        buttons.add(new Button("Laden", 20, Y_ORIGIN + PADDING_BOARD + 8 * FIELD_SIZE, 128, 64));
+        buttons.add(new Button("Speichern", 20, Y_ORIGIN + PADDING_BOARD_SMALL + 7 * FIELD_SIZE, 128, 64));
+        buttons.add(new Button("Laden", 20, Y_ORIGIN + PADDING_BOARD_SMALL + 8 * FIELD_SIZE, 128, 64));
 
         setTitle(NAME);
         setIconImage(pieceImages[0][0][0]);
@@ -166,7 +167,7 @@ public class View extends Frame implements MouseListener, MouseMotionListener {
                     Piece piece = field.getPiece();
                     if (piece != null) {
                         g.drawImage(pieceImages[piece.getType().ordinal()][piece.getColour().ordinal()][field.getColour().ordinal()],
-                                X_ORIGIN + PADDING_BOARD + FIELD_SIZE * x, Y_ORIGIN + PADDING_BOARD + FIELD_SIZE * (7 - y), this);
+                                X_ORIGIN + PADDING_BOARD_SMALL + FIELD_SIZE * x, Y_ORIGIN + PADDING_BOARD_SMALL + FIELD_SIZE * (7 - y), this);
                     }
                 } catch (IllegalArgumentException e) {
                     //todo deal with exception
@@ -223,12 +224,35 @@ public class View extends Frame implements MouseListener, MouseMotionListener {
                 }
             }
         }
+        // check the buttons for click
+        for (Button button : buttons) {
+            boolean onButtonX = xMouse >= button.getX() && xMouse <= button.getX() + button.getWidth();
+            boolean onButtonY = yMouse >= button.getY() && yMouse <= button.getY() + button.getHeight();
+            if (onButtonX && onButtonY) {
+                switch (buttons.indexOf(button)) {
+                    case 0:
+                        try {
+                            BufferedImage chessboardImage = this.image.getSubimage(X_ORIGIN, Y_ORIGIN,
+                                    PADDING_BOARD_SMALL + PADDING_BOARD_LARGE + 8 * FIELD_SIZE,
+                                    PADDING_BOARD_SMALL + PADDING_BOARD_LARGE + 8 * FIELD_SIZE);
+                            SaveFile.writeImage("Aufgabe.png", chessboardImage);
+                        } catch (IOException e1) {
+                            e1.printStackTrace(); // todo handle exception
+                        }
+                        break;
+                    case 1:
+                        System.out.println("Laden"); // todo implement loading
+                        break;
+                    default:
+                }
+            }
+        }
         // check the fields for click
-        if (X_ORIGIN + PADDING_BOARD <= xMouse && xMouse <= X_ORIGIN + PADDING_BOARD + 8 * FIELD_SIZE) {
-            if (Y_ORIGIN + PADDING_BOARD <= yMouse && yMouse <= Y_ORIGIN + PADDING_BOARD + 8 * FIELD_SIZE) {
-                int xField = xMouse - X_ORIGIN - PADDING_BOARD;
+        if (X_ORIGIN + PADDING_BOARD_SMALL <= xMouse && xMouse <= X_ORIGIN + PADDING_BOARD_SMALL + 8 * FIELD_SIZE) {
+            if (Y_ORIGIN + PADDING_BOARD_SMALL <= yMouse && yMouse <= Y_ORIGIN + PADDING_BOARD_SMALL + 8 * FIELD_SIZE) {
+                int xField = xMouse - X_ORIGIN - PADDING_BOARD_SMALL;
                 xField /= FIELD_SIZE;
-                int yField = 8 * FIELD_SIZE - yMouse + Y_ORIGIN + PADDING_BOARD;
+                int yField = 8 * FIELD_SIZE - yMouse + Y_ORIGIN + PADDING_BOARD_SMALL;
                 yField /= FIELD_SIZE;
 
                 if (!move) {
