@@ -92,13 +92,13 @@ public class SaveFile {
     }
 
     /**
-     * Reads an image from the given path.
+     * Reads an image from the given relative resource path.
      *
-     * @param path the path of the image
+     * @param path the relative path of the image
      * @return the BufferedImage
      * @throws IOException if the image cannot be read
      */
     public static BufferedImage getImage(String path) throws IOException {
-        return ImageIO.read(new File(path));
+        return ImageIO.read(new File("resources/" + path));
     }
 }
