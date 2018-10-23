@@ -131,6 +131,11 @@ public class View extends Frame implements MouseListener, MouseMotionListener {
             g.setFont(button.getFont());
             g.drawString(button.getText(), button.getX() + 10, button.getY() + button.getHeight() + (int) ((button.getFont().getSize() * 0.75 - button.getHeight()) / 2));
             g.drawRect(button.getX(), button.getY(), button.getWidth(), button.getHeight());
+            if (button.isPressed()) {
+                g.setColor(Color.black);
+                g.drawRect(button.getX(), button.getY(), button.getWidth(), button.getHeight());
+                g.drawRect(button.getX() + 1, button.getY() + 1, button.getWidth() - 2, button.getHeight() - 2);
+            }
         }
         // draw all piece buttons
         for (DisplayableImage[] images : pieceButtons) {
@@ -276,12 +281,23 @@ public class View extends Frame implements MouseListener, MouseMotionListener {
 
     @Override
     public void mousePressed(MouseEvent e) {
+        int xMouse = e.getX() - IMAGE_OFFSET_X;
+        int yMouse = e.getY() - IMAGE_OFFSET_Y;
 
+        for (Button button : buttons) {
+            boolean onButtonX = xMouse >= button.getX() && xMouse <= button.getX() + button.getWidth();
+            boolean onButtonY = yMouse >= button.getY() && yMouse <= button.getY() + button.getHeight();
+            if (onButtonX && onButtonY) {
+                button.setPressed(true);
+            }
+        }
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
-
+        for (Button button : buttons) {
+            button.setPressed(false);
+        }
     }
 
     @Override

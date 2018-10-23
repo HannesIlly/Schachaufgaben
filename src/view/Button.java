@@ -24,6 +24,8 @@ public class Button {
     private int width;
     private int height;
 
+    private boolean pressed = false;
+
     /**
      * Creates a new button with the given text and image.
      *
@@ -181,5 +183,23 @@ public class Button {
      */
     public String getText() {
         return text;
+    }
+
+    /**
+     * Gets the pressed status of this button.
+     *
+     * @return the pressed status
+     */
+    public boolean isPressed() {
+        return pressed;
+    }
+
+    /**
+     * Sets the pressed status of this button.
+     *
+     * @param pressed if the button is pressed
+     */
+    public void setPressed(boolean pressed) {
+        this.pressed = pressed;
     }
 }
