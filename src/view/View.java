@@ -6,15 +6,19 @@ import io.SaveFile;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.LinkedList;
+import java.util.Properties;
 
-public class View extends Frame implements MouseListener, MouseMotionListener {
+public class View extends Frame implements MouseListener, MouseMotionListener, KeyListener {
     private static final String NAME = "Schachaufgaben erstellen";
-    private static final int IMAGE_OFFSET_X = 5;
-    private static final int IMAGE_OFFSET_Y = 20;
+    private static final int IMAGE_OFFSET_X = 8;
+    private static final int IMAGE_OFFSET_Y = 31;
     private static final int X_ORIGIN = 200;
     private static final int Y_ORIGIN = 40;
     private static final int PADDING_BOARD_SMALL = 38;
@@ -29,6 +33,8 @@ public class View extends Frame implements MouseListener, MouseMotionListener {
     private Colour[] colours = {Colour.white, Colour.black};
     private BufferedImage[][][] pieceImages;
 
+    private Properties saves = new Properties();
+
     private Board board;
     private Piece currentPiece;
     private boolean move = false;
@@ -36,6 +42,11 @@ public class View extends Frame implements MouseListener, MouseMotionListener {
     private DisplayableImage[][] pieceButtons;
     private List<DisplayableImage> imageButtons;
     private List<Button> buttons;
+    private List<TextField> textFields;
+    private List<Label> labels;
+    private List<Notification> notifications;
+
+    private TextField exerciseName;
 
     /**
      * Creates a new view of the given board.
@@ -56,26 +67,42 @@ public class View extends Frame implements MouseListener, MouseMotionListener {
         } catch (IOException e) {
             throw new IOException("Couldn't load UserInterface (" + e.getMessage() + ")");
         }
+        notifications = new LinkedList<Notification>();
         imageButtons = new ArrayList<DisplayableImage>();
         imageButtons.add(new DisplayableImage(SaveFile.getImage("cursor_arrow.png"), 20, Y_ORIGIN + PADDING_BOARD_SMALL));
         imageButtons.add(new DisplayableImage(SaveFile.getImage("cursor_hand.png"), 20 + FIELD_SIZE, Y_ORIGIN + PADDING_BOARD_SMALL));
         buttons = new LinkedList<Button>();
         buttons.add(new Button("Speichern", 20, Y_ORIGIN + PADDING_BOARD_SMALL + 7 * FIELD_SIZE, 128, 64));
         buttons.add(new Button("Laden", 20, Y_ORIGIN + PADDING_BOARD_SMALL + 8 * FIELD_SIZE, 128, 64));
+        textFields = new LinkedList<TextField>();
+        textFields.add(new TextField(X_ORIGIN + PADDING_BOARD_SMALL + 100, Y_ORIGIN + PADDING_BOARD_SMALL + PADDING_BOARD_LARGE + 8 * FIELD_SIZE + 15, 8 * FIELD_SIZE - 100, 32));
+        textFields.add(new TextField(X_ORIGIN + PADDING_BOARD_SMALL + 100, Y_ORIGIN + PADDING_BOARD_SMALL + PADDING_BOARD_LARGE + 8 * FIELD_SIZE + 15 + 32, 8 * FIELD_SIZE - 100, 32));
+        textFields.add(exerciseName = new TextField(X_ORIGIN + PADDING_BOARD_SMALL + 20, Y_ORIGIN - 33, 8 * FIELD_SIZE - 40, 32));
+        labels = new LinkedList<Label>();
+        labels.add(new Label("FEN:", X_ORIGIN, Y_ORIGIN + PADDING_BOARD_SMALL + PADDING_BOARD_LARGE + 8 * FIELD_SIZE + 15, 100, 32));
+        labels.add(new Label("Position Text:", X_ORIGIN, Y_ORIGIN + PADDING_BOARD_SMALL + PADDING_BOARD_LARGE + 8 * FIELD_SIZE + 15 + 32, 100, 32));
+        labels.add(new Label("Titel:", X_ORIGIN, Y_ORIGIN - 33, 50, 32));
+
+        try {
+            saves.load(new FileReader(new File("Gespeicherte_Stellungen.saps")));
+        } catch (IOException e1) {
+            notifications.add(Notification.createError(e1.getMessage()));
+        }
 
         setTitle(NAME);
         setIconImage(pieceImages[0][0][0]);
         setLocation(224, 78);// todo remove numbers
-        setSize(1024, 768);
+        setSize(1366, 768);
         //setExtendedState(MAXIMIZED_BOTH);
         setVisible(true);
         setResizable(true);
 
+        addKeyListener(this);
         addMouseListener(this);
         addMouseMotionListener(this);
         addWindowListener(new WindowListener());
 
-        image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_BYTE_GRAY);
+        image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
         g = image.createGraphics();
 
         try {
@@ -123,6 +150,21 @@ public class View extends Frame implements MouseListener, MouseMotionListener {
         g.setColor(Color.white);
         g.fillRect(0, 0, getWidth(), getHeight());
 
+        // display all notifications
+        int notificationOriginX = X_ORIGIN + PADDING_BOARD_SMALL + PADDING_BOARD_LARGE + 8 * FIELD_SIZE;
+        int notificationOriginY = this.getHeight() - IMAGE_OFFSET_Y - IMAGE_OFFSET_X - 10;
+        for (Notification n : notifications) {
+            g.setColor(n.getTextColor());
+            g.setFont(n.getFont());
+            g.drawString(n.getMessage(), notificationOriginX, notificationOriginY);
+            notificationOriginY -= n.getFont().getSize() * 2;
+            if (notificationOriginY < 0) {
+                notificationOriginY = 0;
+            }
+        }
+        if (!notifications.isEmpty() && notifications.get(0).isExpired()) {
+            notifications.remove(0);
+        }
         // draw all buttons
         for (Button button : buttons) {
             g.setColor(button.getBackgroundColor());
@@ -136,6 +178,23 @@ public class View extends Frame implements MouseListener, MouseMotionListener {
                 g.drawRect(button.getX(), button.getY(), button.getWidth(), button.getHeight());
                 g.drawRect(button.getX() + 1, button.getY() + 1, button.getWidth() - 2, button.getHeight() - 2);
             }
+        }
+        // draw all text fields
+        for (TextField textField : textFields) {
+            g.setColor(Color.white);
+            g.fillRect(textField.getX(), textField.getY(), textField.getWidth(), textField.getHeight());
+            g.setColor(Color.black);
+            g.setFont(textField.getFont());
+            g.drawString(textField.showText(), textField.getX() + 10, textField.getY() + textField.getHeight() + (int) ((textField.getFont().getSize() * 0.75 - textField.getHeight()) / 2));
+            g.drawRect(textField.getX(), textField.getY(), textField.getWidth(), textField.getHeight());
+        }
+        // draw all labels
+        for (Label label : labels) {
+            g.setColor(Color.white);
+            g.fillRect(label.getX(), label.getY(), label.getWidth(), label.getHeight());
+            g.setColor(Color.black);
+            g.setFont(label.getFont());
+            g.drawString(label.getText(), label.getX() + 5, label.getY() + label.getHeight() + (int) ((label.getFont().getSize() * 0.75 - label.getHeight()) / 2));
         }
         // draw all piece buttons
         for (DisplayableImage[] images : pieceButtons) {
@@ -241,15 +300,36 @@ public class View extends Frame implements MouseListener, MouseMotionListener {
                                     PADDING_BOARD_SMALL + PADDING_BOARD_LARGE + 8 * FIELD_SIZE,
                                     PADDING_BOARD_SMALL + PADDING_BOARD_LARGE + 8 * FIELD_SIZE);
                             SaveFile.writeImage("Aufgabe.png", chessboardImage);
+                            notifications.add(Notification.create("Bild exportiert als " + exerciseName.getText() + ".png"));
+
+                            try {
+                                if (saves.getProperty(exerciseName.getText()) != null) {
+                                    throw new IOException("Aufgabe \"" + exerciseName.getText() + "\" existiert bereits!");
+                                }
+                                saves.setProperty(exerciseName.getText(), board.getPositionString());
+                                saves.store(new FileWriter(new File("Gespeicherte_Stellungen.saps")), null);
+                            } catch (IOException e1) {
+                                notifications.add(Notification.createError(e1.getMessage()));
+                            }
                         } catch (IOException e1) {
                             e1.printStackTrace(); // todo handle exception
                         }
                         break;
                     case 1:
-                        System.out.println("Laden"); // todo implement loading
+                        notifications.add(Notification.create("Macht grad nix")); // todo implement loading
                         break;
                     default:
                 }
+            }
+        }
+        // check the text field for click
+        for (TextField textField : textFields) {
+            boolean onButtonX = xMouse >= textField.getX() && xMouse <= textField.getX() + textField.getWidth();
+            boolean onButtonY = yMouse >= textField.getY() && yMouse <= textField.getY() + textField.getHeight();
+            if (onButtonX && onButtonY) {
+                textField.setActive(true);
+            } else {
+                textField.setActive(false);
             }
         }
         // check the fields for click
@@ -317,6 +397,32 @@ public class View extends Frame implements MouseListener, MouseMotionListener {
 
     @Override
     public void mouseMoved(MouseEvent e) {
+
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+        // check the text fields for input
+        for (TextField textField : textFields) {
+            if (textField.isActive()) {
+                switch (e.getKeyChar()) {
+                    case KeyEvent.VK_BACK_SPACE:
+                        textField.removeLastChar();
+                        break;
+                    default:
+                        textField.append(e.getKeyChar());
+                }
+            }
+        }
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
 
     }
 }

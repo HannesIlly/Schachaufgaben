@@ -6,7 +6,7 @@ import java.awt.image.BufferedImage;
 
 /**
  * A button that can display a text, an image or both. This is a passive implementation, that can be
- * asked, whether given coordinates are within the border of this button, but does't do anythin on
+ * asked, whether given coordinates are within the border of this button, but does't do anything on
  * its own.
  */
 public class Button {
@@ -47,7 +47,7 @@ public class Button {
     }
 
     /**
-     * Creates a new button with the given text and image.
+     * Creates a new button with the given image.
      *
      * @param image the displayed image
      * @param x the x-coordinate
@@ -65,7 +65,7 @@ public class Button {
     }
 
     /**
-     * Creates a new button with the given text and image.
+     * Creates a new button with the given text.
      *
      * @param text the displayed text
      * @param x the x-coordinate
