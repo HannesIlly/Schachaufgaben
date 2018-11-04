@@ -33,7 +33,7 @@ public class Main implements Runnable{
      */
     public static void main(String[] args){
         try {
-            // todo add: add pieces, move pieces, starting position, add name/text, save/load, export image
+            // todo add: add pieces, move pieces, starting position, add name/text, save/load, export image, notifications
             // todo test
             //Board board = new Board();
             Board board = Board.createFromPositionString("Ke1 Da5 Tg3 Kg8 Df6 f7 g7 h7");

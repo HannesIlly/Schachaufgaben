@@ -1,90 +1,20 @@
 package chessboard;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 
 public class Board {
     private Field[][] board;
-    private List<Piece> pieces; // todo remove list?
 
     /**
-     * Creates a new board with the initial positions of the pieces.
+     * Creates a new empty board.
      */
-    public Board() throws IOException {
+    public Board() {
         board = new Field[8][8];
-        pieces = new ArrayList<>();
         //All empty fields
         for (int y = 2; y < board.length - 2; y++) { // this works, because the board is a square.
             for (int x = 0; x < board.length; x++) {
-                createField(x, y);
+                board[x][y] = createField(x, y);
             }
         }
-        Piece piece;
-        //Black pawns
-        for (int x = 0; x < board.length; x++) {
-            piece = new Piece(PieceType.pawn, Colour.black);
-            createField(x, 6, piece);
-            pieces.add(piece);
-        }
-        //White pawns
-        for (int x = 0; x < board.length; x++) {
-            piece = new Piece(PieceType.pawn, Colour.white);
-            createField(x, 1, piece);
-            pieces.add(piece);
-        }
-        //All other pieces
-        //White
-        piece = new Piece(PieceType.rook, Colour.white);
-        createField(0, 0, piece);
-        pieces.add(piece);
-        piece = new Piece(PieceType.knight, Colour.white);
-        createField(1, 0, piece);
-        pieces.add(piece);
-        piece = new Piece(PieceType.bishop, Colour.white);
-        createField(2, 0, piece);
-        pieces.add(piece);
-        piece = new Piece(PieceType.queen, Colour.white);
-        createField(3, 0, piece);
-        pieces.add(piece);
-        piece = new Piece(PieceType.king, Colour.white);
-        createField(4, 0, piece);
-        pieces.add(piece);
-        piece = new Piece(PieceType.bishop, Colour.white);
-        createField(5, 0, piece);
-        pieces.add(piece);
-        piece = new Piece(PieceType.knight, Colour.white);
-        createField(6, 0, piece);
-        pieces.add(piece);
-        piece = new Piece(PieceType.rook, Colour.white);
-        createField(7, 0, piece);
-        pieces.add(piece);
-        //Black
-        piece = new Piece(PieceType.rook, Colour.black);
-        createField(0, 7, piece);
-        pieces.add(piece);
-        piece = new Piece(PieceType.knight, Colour.black);
-        createField(1, 7, piece);
-        pieces.add(piece);
-        piece = new Piece(PieceType.bishop, Colour.black);
-        createField(2, 7, piece);
-        pieces.add(piece);
-        piece = new Piece(PieceType.queen, Colour.black);
-        createField(3, 7, piece);
-        pieces.add(piece);
-        piece = new Piece(PieceType.king, Colour.black);
-        createField(4, 7, piece);
-        pieces.add(piece);
-        piece = new Piece(PieceType.bishop, Colour.black);
-        createField(5, 7, piece);
-        pieces.add(piece);
-        piece = new Piece(PieceType.knight, Colour.black);
-        createField(6, 7, piece);
-        pieces.add(piece);
-        piece = new Piece(PieceType.rook, Colour.black);
-        createField(7, 7, piece);
-        pieces.add(piece);
     }
 
     /**
@@ -117,7 +47,7 @@ public class Board {
         Field[][] fields = new Field[8][8];
         for (int x = 0; x < fields.length; x++) {
             for (int y = 0; y < fields[x].length; y++) {
-                fields[x][y] = new Field((x + y) % 2 == 0 ? Colour.black : Colour.white);
+                fields[x][y] = createField(x, y);
             }
         }
         String[] positionData = position.split(" ");
@@ -157,14 +87,15 @@ public class Board {
                 x = current.charAt(1) - 97;
                 y = Integer.parseInt(current.substring(2, 3)) - 1;
 
+                new Piece(pieceType, player).move(fields[x][y]);
             } else if (current.length() == 2) {
                 pieceType = PieceType.pawn;
 
                 x = current.charAt(0) - 97;
                 y = Integer.parseInt(current.substring(1, 2)) - 1;
-            }
 
-            new Piece(pieceType, player).move(fields[x][y]);
+                new Piece(pieceType, player).move(fields[x][y]);
+            }
         }
 
         return new Board(fields);
@@ -183,7 +114,7 @@ public class Board {
         Field[][] fields = new Field[8][8];
         for (int x = 0; x < fields.length; x++) {
             for (int y = 0; y < fields[x].length; y++) {
-                fields[x][y] = new Field((x + y) % 2 == 0 ? Colour.black : Colour.white);
+                fields[x][y] = createField(x, y);
             }
         }
         int x = 0;
@@ -322,17 +253,37 @@ public class Board {
     }
 
     /**
+     * Clears this board, so that all fields are empty afterwards.
+     */
+    public void clear() {
+        for (int x = 0; x < board.length; x++) {
+            for (int y = 0; y < board.length; y++) {
+                board[x][y].clear();
+            }
+        }
+    }
+
+    /**
+     * Creates an board with empty fields.
+     *
+     * @return An empty board.
+     */
+    public static Board createEmpty(){
+        return Board.createFromPositionString("");
+    }
+
+    /**
      * Creates a field with the gieven piece and the correct color from the coordinates.
      */
-    private void createField(int x, int y, Piece piece) {
-        this.board[x][y] = new Field((x + y) % 2 == 0 ? Colour.black : Colour.white, piece);
+    private static Field createField(int x, int y, Piece piece) {
+        return new Field((x + y) % 2 == 0 ? Colour.black : Colour.white, piece);
     }
 
     /**
      * Creates a field with the correct color from the coordinates.
      */
-    private void createField(int x, int y) {
-        this.board[x][y] = new Field((x + y) % 2 == 0 ? Colour.black : Colour.white);
+    private static Field createField(int x, int y) {
+        return new Field((x + y) % 2 == 0 ? Colour.black : Colour.white);
     }
 
     /**

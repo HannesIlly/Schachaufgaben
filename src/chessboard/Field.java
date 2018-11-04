@@ -1,7 +1,7 @@
 package chessboard;
 
 /**
- * A field of a chess board consitsting of its colour and the piece that might be on it.
+ * A field of a chess board consisting of its colour and the piece that might be on it.
  */
 public class Field {
     private Colour colour;
@@ -55,7 +55,8 @@ public class Field {
     /**
      * Sets the mark of this field or removes it, if it is {@code null}.
      *
-     * @param mark the mark of this field
+     * @param mark
+     *         the mark of this field
      */
     public void setMark(Mark mark) {
         this.mark = mark;
@@ -74,7 +75,7 @@ public class Field {
      * @return the colour of this field
      */
     public Colour getColour() {
-       return colour;
+        return colour;
     }
 
     /**
@@ -84,5 +85,13 @@ public class Field {
      */
     public Mark getMark() {
         return mark;
+    }
+
+    /**
+     * Removes the piece from this field.
+     */
+    public void clear() {
+        // todo maybe safe delete (only delete legal states)
+        setPiece(null);
     }
 }
