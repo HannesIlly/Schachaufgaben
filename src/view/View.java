@@ -6,14 +6,10 @@ import io.SaveFile;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.LinkedList;
-import java.util.Properties;
+import java.util.List;
 
 public class View extends Frame implements MouseListener, MouseMotionListener, KeyListener {
     private static final String NAME = "Schachaufgaben erstellen";
@@ -24,6 +20,7 @@ public class View extends Frame implements MouseListener, MouseMotionListener, K
     private static final int PADDING_BOARD_SMALL = 38;
     private static final int PADDING_BOARD_LARGE = 46;
     private static final int FIELD_SIZE = 64;
+    private static final int BOARD_SIZE = PADDING_BOARD_SMALL + PADDING_BOARD_LARGE + 8 * FIELD_SIZE;
 
     private Graphics2D g;
     private BufferedImage image;
@@ -33,20 +30,26 @@ public class View extends Frame implements MouseListener, MouseMotionListener, K
     private Colour[] colours = {Colour.white, Colour.black};
     private BufferedImage[][][] pieceImages;
 
-    private Properties saves = new Properties();
+    private SaveFile saves;
 
     private Board board;
     private Piece currentPiece;
     private boolean move = false;
 
     private DisplayableImage[][] pieceButtons;
-    private List<DisplayableImage> imageButtons;
-    private List<Button> buttons;
-    private List<TextField> textFields;
-    private List<Label> labels;
-    private List<Notification> notifications;
+    private List<DisplayableImage> imageButtons = new ArrayList<>();
+    private List<Button> buttons = new LinkedList<>();
+    private List<TextField> textFields = new LinkedList<>();
+    private List<Label> labels = new LinkedList<>();
+    private List<Notification> notifications = new LinkedList<>();
 
-    private TextField exerciseName;
+    private Label ioTitle = new Label(X_ORIGIN + BOARD_SIZE, Y_ORIGIN + FIELD_SIZE, 250, 32);
+    private List<Button> ioButtonsFile = new LinkedList<>();
+    private List<Button> ioButtonsPosition = new LinkedList<>();
+    private boolean write = false;
+    private Button currentFileButton;
+
+    private TextField positionName;
 
     /**
      * Creates a new view of the given board.
@@ -67,35 +70,34 @@ public class View extends Frame implements MouseListener, MouseMotionListener, K
         } catch (IOException e) {
             throw new IOException("Couldn't load UserInterface (" + e.getMessage() + ")");
         }
-        notifications = new LinkedList<Notification>();
-        imageButtons = new ArrayList<DisplayableImage>();
         imageButtons.add(new DisplayableImage(SaveFile.getImage("cursor_arrow.png"), 20, Y_ORIGIN + PADDING_BOARD_SMALL));
         imageButtons.add(new DisplayableImage(SaveFile.getImage("cursor_hand.png"), 20 + FIELD_SIZE, Y_ORIGIN + PADDING_BOARD_SMALL));
-        buttons = new LinkedList<Button>();
-        buttons.add(new Button("Speichern", 20, Y_ORIGIN + PADDING_BOARD_SMALL + 7 * FIELD_SIZE, 128, 64));
-        buttons.add(new Button("Laden", 20, Y_ORIGIN + PADDING_BOARD_SMALL + 8 * FIELD_SIZE, 128, 64));
-        textFields = new LinkedList<TextField>();
-        textFields.add(new TextField(X_ORIGIN + PADDING_BOARD_SMALL + 100, Y_ORIGIN + PADDING_BOARD_SMALL + PADDING_BOARD_LARGE + 8 * FIELD_SIZE + 15, 8 * FIELD_SIZE - 100, 32));
-        textFields.add(new TextField(X_ORIGIN + PADDING_BOARD_SMALL + 100, Y_ORIGIN + PADDING_BOARD_SMALL + PADDING_BOARD_LARGE + 8 * FIELD_SIZE + 15 + 32, 8 * FIELD_SIZE - 100, 32));
-        textFields.add(exerciseName = new TextField(X_ORIGIN + PADDING_BOARD_SMALL + 20, Y_ORIGIN - 33, 8 * FIELD_SIZE - 40, 32));
-        labels = new LinkedList<Label>();
-        labels.add(new Label("FEN:", X_ORIGIN, Y_ORIGIN + PADDING_BOARD_SMALL + PADDING_BOARD_LARGE + 8 * FIELD_SIZE + 15, 100, 32));
-        labels.add(new Label("Position Text:", X_ORIGIN, Y_ORIGIN + PADDING_BOARD_SMALL + PADDING_BOARD_LARGE + 8 * FIELD_SIZE + 15 + 32, 100, 32));
+        buttons.add(new Button("Speichern", X_ORIGIN + BOARD_SIZE + 128, Y_ORIGIN, 128, 32));
+        buttons.add(new Button("Laden", X_ORIGIN + BOARD_SIZE, Y_ORIGIN, 128, 32));
+        textFields.add(new TextField(X_ORIGIN + PADDING_BOARD_SMALL + 100, Y_ORIGIN + BOARD_SIZE + 15, 8 * FIELD_SIZE - 100, 32));
+        textFields.add(new TextField(X_ORIGIN + PADDING_BOARD_SMALL + 100, Y_ORIGIN + BOARD_SIZE + 15 + 32, 8 * FIELD_SIZE - 100, 32));
+        textFields.add(positionName = new TextField(X_ORIGIN + PADDING_BOARD_SMALL + 20, Y_ORIGIN - 33, 8 * FIELD_SIZE - 40, 32));
+        labels.add(ioTitle);
+        labels.add(new Label("FEN:", X_ORIGIN, Y_ORIGIN + BOARD_SIZE + 15, 100, 32));
+        labels.add(new Label("Position Text:", X_ORIGIN, Y_ORIGIN + BOARD_SIZE + 15 + 32, 100, 32));
         labels.add(new Label("Titel:", X_ORIGIN, Y_ORIGIN - 33, 50, 32));
 
-        try {
-            saves.load(new FileReader(new File("Gespeicherte_Stellungen.saps")));
-        } catch (IOException e1) {
-            notifications.add(Notification.createError(e1.getMessage()));
+        ioTitle.setText("Speicherdatei laden:");
+        String[] fileNames = SaveFile.getSaveFileNames();
+        for (int i = 0; i < fileNames.length; i++) {
+            Button newIOButton = Button.createPlainButton(fileNames[i], ioTitle.getX(),
+                    ioTitle.getY() + (int) (1.5 * ioTitle.getHeight()) + i * ioTitle.getHeight(),
+                    ioTitle.getWidth(), ioTitle.getHeight());
+            ioButtonsFile.add(newIOButton);
         }
 
         setTitle(NAME);
         setIconImage(pieceImages[0][0][0]);
-        setLocation(224, 78);// todo remove numbers
+        setLocation(224, 78);// todo
         setSize(1366, 768);
         //setExtendedState(MAXIMIZED_BOTH);
         setVisible(true);
-        setResizable(true);
+        setResizable(false);// todo
 
         addKeyListener(this);
         addMouseListener(this);
@@ -151,7 +153,7 @@ public class View extends Frame implements MouseListener, MouseMotionListener, K
         g.fillRect(0, 0, getWidth(), getHeight());
 
         // display all notifications
-        int notificationOriginX = X_ORIGIN + PADDING_BOARD_SMALL + PADDING_BOARD_LARGE + 8 * FIELD_SIZE;
+        int notificationOriginX = X_ORIGIN + BOARD_SIZE;
         int notificationOriginY = this.getHeight() - IMAGE_OFFSET_Y - IMAGE_OFFSET_X - 10;
         for (Notification n : notifications) {
             g.setColor(n.getTextColor());
@@ -179,6 +181,33 @@ public class View extends Frame implements MouseListener, MouseMotionListener, K
                 g.drawRect(button.getX() + 1, button.getY() + 1, button.getWidth() - 2, button.getHeight() - 2);
             }
         }
+        // draw all io-buttons
+        for (Button button : ioButtonsFile) {
+            g.setColor(button.getBackgroundColor());
+            g.fillRect(button.getX(), button.getY(), button.getWidth(), button.getHeight());
+            g.setColor(button.getTextColor());
+            g.setFont(button.getFont());
+            g.drawString(button.getText(), button.getX() + 10, button.getY() + button.getHeight() + (int) ((button.getFont().getSize() * 0.75 - button.getHeight()) / 2));
+            g.drawRect(button.getX(), button.getY(), button.getWidth(), button.getHeight());
+            if (button.isPressed()) {
+                g.setColor(Color.black);
+                g.drawRect(button.getX(), button.getY(), button.getWidth(), button.getHeight());
+                g.drawRect(button.getX() + 1, button.getY() + 1, button.getWidth() - 2, button.getHeight() - 2);
+            }
+        }
+        for (Button button : ioButtonsPosition) {
+            g.setColor(button.getBackgroundColor());
+            g.fillRect(button.getX(), button.getY(), button.getWidth(), button.getHeight());
+            g.setColor(button.getTextColor());
+            g.setFont(button.getFont());
+            g.drawString(button.getText(), button.getX() + 10, button.getY() + button.getHeight() + (int) ((button.getFont().getSize() * 0.75 - button.getHeight()) / 2));
+            g.drawRect(button.getX(), button.getY(), button.getWidth(), button.getHeight());
+            if (button.isPressed()) {
+                g.setColor(Color.black);
+                g.drawRect(button.getX(), button.getY(), button.getWidth(), button.getHeight());
+                g.drawRect(button.getX() + 1, button.getY() + 1, button.getWidth() - 2, button.getHeight() - 2);
+            }
+        }
         // draw all text fields
         for (TextField textField : textFields) {
             g.setColor(Color.white);
@@ -194,7 +223,7 @@ public class View extends Frame implements MouseListener, MouseMotionListener, K
             g.fillRect(label.getX(), label.getY(), label.getWidth(), label.getHeight());
             g.setColor(Color.black);
             g.setFont(label.getFont());
-            g.drawString(label.getText(), label.getX() + 5, label.getY() + label.getHeight() + (int) ((label.getFont().getSize() * 0.75 - label.getHeight()) / 2));
+            g.drawString(label.getText(), label.getX(), label.getY() + label.getHeight() + (int) ((label.getFont().getSize() * 0.75 - label.getHeight()) / 2));
         }
         // draw all piece buttons
         for (DisplayableImage[] images : pieceButtons) {
@@ -293,32 +322,118 @@ public class View extends Frame implements MouseListener, MouseMotionListener, K
             boolean onButtonX = xMouse >= button.getX() && xMouse <= button.getX() + button.getWidth();
             boolean onButtonY = yMouse >= button.getY() && yMouse <= button.getY() + button.getHeight();
             if (onButtonX && onButtonY) {
+                String[] fileNames = SaveFile.getSaveFileNames();
                 switch (buttons.indexOf(button)) {
                     case 0:
-                        try {
-                            BufferedImage chessboardImage = this.image.getSubimage(X_ORIGIN, Y_ORIGIN,
-                                    PADDING_BOARD_SMALL + PADDING_BOARD_LARGE + 8 * FIELD_SIZE,
-                                    PADDING_BOARD_SMALL + PADDING_BOARD_LARGE + 8 * FIELD_SIZE);
-                            SaveFile.writeImage("Aufgabe.png", chessboardImage);
-                            notifications.add(Notification.create("Bild exportiert als " + exerciseName.getText() + ".png"));
-
-                            try {
-                                if (saves.getProperty(exerciseName.getText()) != null) {
-                                    throw new IOException("Aufgabe \"" + exerciseName.getText() + "\" existiert bereits!");
-                                }
-                                saves.setProperty(exerciseName.getText(), board.getPositionString());
-                                saves.store(new FileWriter(new File("Gespeicherte_Stellungen.saps")), null);
-                            } catch (IOException e1) {
-                                notifications.add(Notification.createError(e1.getMessage()));
+                        ioTitle.setText("Stellung speichern:");
+                        if (!write) {
+                            this.write = true; // set to write
+                            if (currentFileButton != null) {
+                                currentFileButton.setBackgroundColor(Color.lightGray);
                             }
-                        } catch (IOException e1) {
-                            e1.printStackTrace(); // todo handle exception
+                            saves = null;
+                            currentFileButton = null;
+                            ioButtonsPosition.clear();
+                            ioButtonsFile.clear();
+                            for (int i = 0; i < fileNames.length; i++) {
+                                Button newIOButton = Button.createPlainButton(fileNames[i], ioTitle.getX(),
+                                        ioTitle.getY() + (int) (1.5 * ioTitle.getHeight()) + i * ioTitle.getHeight(),
+                                        ioTitle.getWidth(), ioTitle.getHeight());
+                                ioButtonsFile.add(newIOButton);
+                            }
                         }
+
+                        /* todo export image
+                        try {
+                            BufferedImage chessboardImage = this.image.getSubimage(X_ORIGIN, Y_ORIGIN, BOARD_SIZE, BOARD_SIZE);
+                            SaveFile.writeImage("Aufgabe", chessboardImage);
+                            notifications.add(Notification.create("Bild exportiert als " + positionName.getText() + ".png"));
+
+                        } catch (IOException | IllegalArgumentException e1) {
+                            notifications.add(Notification.createError(e1.getMessage()));
+                        }*/
                         break;
                     case 1:
-                        notifications.add(Notification.create("Macht grad nix")); // todo implement loading
+                        ioTitle.setText("Speicherdatei laden:");
+                        if (write) {
+                            this.write = false; // set to load
+                            if (currentFileButton != null) {
+                                currentFileButton.setBackgroundColor(Color.lightGray);
+                            }
+                            saves = null;
+                            currentFileButton = null;
+                            ioButtonsPosition.clear();
+                            ioButtonsFile.clear();
+                            for (int i = 0; i < fileNames.length; i++) {
+                                Button newIOButton = Button.createPlainButton(fileNames[i], ioTitle.getX(),
+                                        ioTitle.getY() + (int) (1.5 * ioTitle.getHeight()) + i * ioTitle.getHeight(),
+                                        ioTitle.getWidth(), ioTitle.getHeight());
+                                ioButtonsFile.add(newIOButton);
+                            }
+                        }
                         break;
                     default:
+                }
+            }
+        }
+        // check the io-buttons for click
+        for (Button button : ioButtonsFile) {
+            boolean onButtonX = xMouse >= button.getX() && xMouse <= button.getX() + button.getWidth();
+            boolean onButtonY = yMouse >= button.getY() && yMouse <= button.getY() + button.getHeight();
+            if (onButtonX && onButtonY) {
+                try {
+                    saves = new SaveFile(button.getText());
+                    if (write) {
+                        try {
+                            if (saves.exists(positionName.getText())) {
+                                notifications.add(Notification.createError("Stellung " + positionName.getText() + " existiert bereits in " + saves.getName()));
+                            } else {
+                                saves.set(positionName.getText(), board.getPositionString());
+                                saves.writeProperties();
+                                notifications.add(Notification.create("Stellung wurde als " + positionName.getText() + " gespeichert."));
+                                write = false;
+                            }
+                        } catch (IllegalArgumentException e1) {
+                            notifications.add(Notification.createError(e1.getMessage()));
+                        }
+                    }
+                    saves.readProperties();
+                    if (currentFileButton != null) {
+                        currentFileButton.setBackgroundColor(Color.lightGray);
+                    }
+                    currentFileButton = button;
+                    currentFileButton.setBackgroundColor(Color.cyan);
+
+                    ioButtonsPosition.clear();
+                    int i = 0;
+                    for (String s : saves.getKeys()) {
+                        Button newIOButton = Button.createPlainButton(s, ioTitle.getX() + ioTitle.getWidth(),
+                                ioTitle.getY() + (int) (1.5 * ioTitle.getHeight()) + i * ioTitle.getHeight(),
+                                ioTitle.getWidth(), ioTitle.getHeight());
+                        ioButtonsPosition.add(newIOButton);
+                        i++;
+                    }
+                } catch (IOException e1) {
+                    notifications.add(Notification.createError(e1.getMessage()));
+                }
+            }
+        }
+        for (Button button : ioButtonsPosition) {
+            boolean onButtonX = xMouse >= button.getX() && xMouse <= button.getX() + button.getWidth();
+            boolean onButtonY = yMouse >= button.getY() && yMouse <= button.getY() + button.getHeight();
+            if (onButtonX && onButtonY) {
+                if (saves != null) {
+                    if (!write) {
+                        try {
+                            board = Board.createFromPositionString(saves.get(button.getText()));
+                            positionName.setText(button.getText());
+                            notifications.add(Notification.create("Stellung " + button.getText() + " wurde geladen."));
+                        } catch (IllegalArgumentException e1) {
+                            notifications.add(Notification.createError(e1.getMessage()));
+                        }
+                    }
+                } else {
+                    notifications.add(Notification.createError("Fehler: Es ist keine Datei ausgewählt!"));
                 }
             }
         }
@@ -371,11 +486,31 @@ public class View extends Frame implements MouseListener, MouseMotionListener, K
                 button.setPressed(true);
             }
         }
+        for (Button button : ioButtonsFile) {
+            boolean onButtonX = xMouse >= button.getX() && xMouse <= button.getX() + button.getWidth();
+            boolean onButtonY = yMouse >= button.getY() && yMouse <= button.getY() + button.getHeight();
+            if (onButtonX && onButtonY) {
+                button.setPressed(true);
+            }
+        }
+        for (Button button : ioButtonsPosition) {
+            boolean onButtonX = xMouse >= button.getX() && xMouse <= button.getX() + button.getWidth();
+            boolean onButtonY = yMouse >= button.getY() && yMouse <= button.getY() + button.getHeight();
+            if (onButtonX && onButtonY) {
+                button.setPressed(true);
+            }
+        }
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
         for (Button button : buttons) {
+            button.setPressed(false);
+        }
+        for (Button button : ioButtonsFile) {
+            button.setPressed(false);
+        }
+        for (Button button : ioButtonsPosition) {
             button.setPressed(false);
         }
     }
