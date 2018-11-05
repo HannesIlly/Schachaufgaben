@@ -74,6 +74,8 @@ public class View extends Frame implements MouseListener, MouseMotionListener, K
         imageButtons.add(new DisplayableImage(SaveFile.getImage("cursor_hand.png"), 20 + FIELD_SIZE, Y_ORIGIN + PADDING_BOARD_SMALL));
         buttons.add(new Button("Speichern", X_ORIGIN + BOARD_SIZE + 128, Y_ORIGIN, 128, 32));
         buttons.add(new Button("Laden", X_ORIGIN + BOARD_SIZE, Y_ORIGIN, 128, 32));
+        buttons.add(new Button("Originalgröße", 20, Y_ORIGIN + 8 * FIELD_SIZE + 16 + 32, 160, 32));
+        buttons.add(new Button("Klein", 20, Y_ORIGIN + 8 * FIELD_SIZE + 16 + 64, 160, 32));
         textFields.add(new TextField(X_ORIGIN + PADDING_BOARD_SMALL + 100, Y_ORIGIN + BOARD_SIZE + 15, 8 * FIELD_SIZE - 100, 32));
         textFields.add(new TextField(X_ORIGIN + PADDING_BOARD_SMALL + 100, Y_ORIGIN + BOARD_SIZE + 15 + 32, 8 * FIELD_SIZE - 100, 32));
         textFields.add(positionName = new TextField(X_ORIGIN + PADDING_BOARD_SMALL + 20, Y_ORIGIN - 33, 8 * FIELD_SIZE - 40, 32));
@@ -81,6 +83,7 @@ public class View extends Frame implements MouseListener, MouseMotionListener, K
         labels.add(new Label("FEN:", X_ORIGIN, Y_ORIGIN + BOARD_SIZE + 15, 100, 32));
         labels.add(new Label("Position Text:", X_ORIGIN, Y_ORIGIN + BOARD_SIZE + 15 + 32, 100, 32));
         labels.add(new Label("Titel:", X_ORIGIN, Y_ORIGIN - 33, 50, 32));
+        labels.add(new Label("Bild exportieren:", 20, Y_ORIGIN + 8 * FIELD_SIZE, 160, 32));
 
         ioTitle.setText("Speicherdatei laden:");
         String[] fileNames = SaveFile.getSaveFileNames();
@@ -342,16 +345,6 @@ public class View extends Frame implements MouseListener, MouseMotionListener, K
                                 ioButtonsFile.add(newIOButton);
                             }
                         }
-
-                        /* todo export image
-                        try {
-                            BufferedImage chessboardImage = this.image.getSubimage(X_ORIGIN, Y_ORIGIN, BOARD_SIZE, BOARD_SIZE);
-                            SaveFile.writeImage("Aufgabe", chessboardImage);
-                            notifications.add(Notification.create("Bild exportiert als " + positionName.getText() + ".png"));
-
-                        } catch (IOException | IllegalArgumentException e1) {
-                            notifications.add(Notification.createError(e1.getMessage()));
-                        }*/
                         break;
                     case 1:
                         ioTitle.setText("Speicherdatei laden:");
@@ -370,6 +363,37 @@ public class View extends Frame implements MouseListener, MouseMotionListener, K
                                         ioTitle.getWidth(), ioTitle.getHeight());
                                 ioButtonsFile.add(newIOButton);
                             }
+                        }
+                        break;
+                    case 2:
+                        if (positionName.getText() != null && !positionName.getText().equals("")) {
+                            try {
+                                BufferedImage chessboardImage = this.image.getSubimage(X_ORIGIN, Y_ORIGIN, BOARD_SIZE, BOARD_SIZE);
+                                SaveFile.writeImage(positionName.getText(), chessboardImage);
+                                notifications.add(Notification.create("Stellung exportiert als " + positionName.getText() + ".png"));
+
+                            } catch (IOException | IllegalArgumentException e1) {
+                                notifications.add(Notification.createError(e1.getMessage()));
+                            }
+                        } else {
+                            notifications.add(Notification.createError("Der Name des Stellung muss angegeben werden."));
+                        }
+                        break;
+                    case 3:
+                        if (positionName.getText() != null && !positionName.getText().equals("")) {
+                            try {
+                                BufferedImage chessboardImage = this.image.getSubimage(X_ORIGIN, Y_ORIGIN, BOARD_SIZE, BOARD_SIZE);
+                                Image scaledChessboardImage = chessboardImage.getScaledInstance(BOARD_SIZE / 3, -1, Image.SCALE_SMOOTH);
+                                BufferedImage scaledImage = new BufferedImage(scaledChessboardImage.getWidth(null), scaledChessboardImage.getHeight(null), chessboardImage.getType());
+                                scaledImage.createGraphics().drawImage(scaledChessboardImage, 0, 0, null);
+                                SaveFile.writeImage(positionName.getText(), scaledImage);
+                                notifications.add(Notification.create("Stellung exportiert als " + positionName.getText() + ".png (klein)."));
+
+                            } catch (IOException | IllegalArgumentException e1) {
+                                notifications.add(Notification.createError(e1.getMessage()));
+                            }
+                        } else {
+                            notifications.add(Notification.createError("Der Name des Stellung muss angegeben werden."));
                         }
                         break;
                     default:

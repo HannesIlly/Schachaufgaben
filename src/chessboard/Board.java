@@ -19,7 +19,7 @@ public class Board {
 
     /**
      * Creates a new board with the given fields. The board will assume the state of the fields e.g.
-     * ff the fields have pieces on it or are in an illegal state, the board will as well.
+     * if the fields have pieces on it or are in an illegal state, the board will as well.
      *
      * @param fields
      *         the 8x8 array of fields

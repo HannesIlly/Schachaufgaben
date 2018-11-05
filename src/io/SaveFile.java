@@ -155,17 +155,17 @@ public class SaveFile {
     }
 
     /**
-     * Writes an image to the specified path.
+     * Writes an image with the given name (as .png).
      *
-     * @param path
-     *         the path of the image
+     * @param name
+     *         the name of the image
      * @param image
      *         the BufferedImage
      * @return if a writer could be created
      * @throws IOException
      *         if the image cannot be written
      */
-    public static boolean writeImage(String path, BufferedImage image) throws IOException {
-        return ImageIO.write(image, "png", new File(path + ".png"));
+    public static boolean writeImage(String name, BufferedImage image) throws IOException {
+        return ImageIO.write(image, "png", new File(name + ".png"));
     }
 }
