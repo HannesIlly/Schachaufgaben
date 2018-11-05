@@ -1,51 +1,66 @@
 package io;
 
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.Buffer;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Properties;
-
-import javax.imageio.ImageIO;
+import java.util.Set;
 
 /**
- * this class is used to read and write files
+ * This class is used to read and write files.
  *
  * @author Hannes Illy
  * @version 1.0
  */
 public class SaveFile {
-    private Properties properties = new Properties();
+    private static final String SAVE_PATH = "./";
 
     private String name;
-    private String path;
     private File file;
+
+    private Properties properties = new Properties();
 
     /**
      * Creates a SaveFile object that represents a file on the computer and will create the file or
-     * the directory, if they don't exist
+     * the directory, if they don't exist.
      *
      * @param name
-     *         The name of the save file. The file ending will be added.
+     *         The name of the save file. The file ending (.saps), if not already present, will be added.
      * @throws IOException
      *         if an io-error occurs
      */
     public SaveFile(String name) throws IOException {
         this.name = name;
-        this.path = name + ".saps";
-        this.file = new File(this.path);
+        if (name.endsWith(".saps")) {
+            this.file = new File(SAVE_PATH + name);
+        } else {
+            this.file = new File(SAVE_PATH + name + ".saps");
+        }
 
         if (!file.exists()) {
             file.mkdirs();
             file.createNewFile();
         }
+
+        readProperties();
+    }
+
+    /**
+     * Returns all file names of SaveFiles in the save directory.
+     *
+     * @return the array of all file names (without ending)
+     */
+    public static String[] getSaveFileNames(){
+        String[] fileNames = new File(SAVE_PATH).list((dir, name1) -> name1.endsWith(".saps"));
+        for (int i = 0; i < fileNames.length; i++) {
+            if (fileNames[i].length() > 5) {
+                fileNames[i] = fileNames[i].substring(0, fileNames[i].length() - 5);
+            }
+        }
+        return fileNames;
     }
 
     /**
@@ -98,7 +113,7 @@ public class SaveFile {
      */
     public boolean exists(String key) throws IllegalArgumentException {
         if (key == null ||key.length() == 0) {
-            throw new IllegalArgumentException("Key muss vorhanden sein!");
+            throw new IllegalArgumentException("Name muss vorhanden sein!");
         }
         return properties.getProperty(key) != null;
     }
@@ -112,9 +127,18 @@ public class SaveFile {
      */
     public void set(String key, String value) throws IllegalArgumentException {
         if (key == null ||key.length() == 0) {
-            throw new IllegalArgumentException("Key muss vorhanden sein!");
+            throw new IllegalArgumentException("Name muss vorhanden sein!");
         }
         properties.setProperty(key, value);
+    }
+
+    /**
+     * Gets a set of all keys of the save file.
+     *
+     * @return the set containing all keys
+     */
+    public Set<String> getKeys() {
+        return properties.stringPropertyNames();
     }
 
     /**
@@ -142,6 +166,6 @@ public class SaveFile {
      *         if the image cannot be written
      */
     public static boolean writeImage(String path, BufferedImage image) throws IOException {
-        return ImageIO.write(image, "png", new File(path));
+        return ImageIO.write(image, "png", new File(path + ".png"));
     }
 }
