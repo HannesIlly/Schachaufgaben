@@ -83,6 +83,21 @@ public class Button {
     }
 
     /**
+     * Creates a new button with the given text in plain style.
+     *
+     * @param text the displayed text
+     * @param x the x-coordinate
+     * @param y the y-coordinate
+     * @param width the with of the button
+     * @param height the height of the button
+     */
+    public static Button createPlainButton(String text, int x, int y, int width, int height) {
+        Button button = new Button(text, x, y, width, height);
+        button.font = button.font.deriveFont(Font.PLAIN);
+        return button;
+    }
+
+    /**
      * Gets the text color.
      *
      * @return the text Color
